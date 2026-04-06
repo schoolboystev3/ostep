@@ -76,7 +76,7 @@ int main() {
         waitpid(pid, &status, 0);
 
         if (WIFEXITED(status)) {
-            printf("Child %d exited with code %d\n", 
+            printf("Child %d exited with code %d.\n", 
                     pid, WEXITSTATUS(status));
         }
     }
