@@ -1,0 +1,17 @@
+Pages, Average_Time
+1, delta: 2.4081e-05 Average Access Time: 2.4081e-09
+2, delta: 2.4165e-05 Average Access Time: 1.20825e-09
+4, delta: 2.2457e-05 Average Access Time: 5.61425e-10
+8, delta: 2.2582e-05 Average Access Time: 2.82275e-10
+16, delta: 2.2456e-05 Average Access Time: 1.4035e-10
+32, delta: 2.2498e-05 Average Access Time: 7.03063e-11
+64, delta: 2.3373e-05 Average Access Time: 3.65203e-11
+128, delta: 2.2414e-05 Average Access Time: 1.75109e-11
+256, delta: 2.2748e-05 Average Access Time: 8.88594e-12
+512, delta: 2.2415e-05 Average Access Time: 4.37793e-12
+1024, delta: 2.2373e-05 Average Access Time: 2.18486e-12
+2048, delta: 4.8371e-05 Average Access Time: 2.36187e-12
+4096, delta: 0.000790348 Average Access Time: 1.92956e-11
+8192, delta: 0.00243783 Average Access Time: 2.97587e-11
+16384, delta: 0.00620971 Average Access Time: 3.79011e-11
+32768, delta: 0.0135093 Average Access Time: 4.12271e-11
