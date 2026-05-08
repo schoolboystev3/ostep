@@ -22,6 +22,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -43,7 +44,7 @@ typedef struct packet {
     uint64_t timestamp;
     uint32_t length;
     uint32_t priority;
-    uint8_t payload[];
+    uint8_t payload[MAX_PAYLOAD_DATA_SIZE / 8];
 } packet_t;
 
 // Align to avoid false sharing
@@ -245,7 +246,7 @@ int main() {
             new->priority = HIGH_PRIORITY;
             curr += sizeof(packet_payload_t);
 
-            ready_ring->buffer[ready_ring->head] = packet_idx;
+            ready_ring->buffer[ready_ring->head & ready_ring->mask] = packet_idx;
             atomic_store_explicit(&ready_ring->head, ready_ring->head + 1, memory_order_release);
         }
 
@@ -265,11 +266,16 @@ int main() {
             packet_t *curr = &packet_buf[packet_idx];
             process_packet(curr, &checksum);
 
-            free_ring->buffer[free_ring->head] = packet_idx;
+            packet_count += 1;
+            free_ring->buffer[free_ring->head & free_ring->mask] = packet_idx;
             atomic_store_explicit(&free_ring->head, free_ring->head + 1, memory_order_release);
         }
 
-        // TODO child join
+        int wstatus;
+        if (!waitpid(pid, &wstatus, 0)) {
+            perror("Wait for child failed.\n");
+            goto cleanup;
+        }
 
         uint64_t expected_checksum = calc_expected_checksum();
         if (checksum != expected_checksum) {
