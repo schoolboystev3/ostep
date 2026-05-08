@@ -31,7 +31,7 @@
 #define PAYLOAD_SIZE PAYLOAD_HEADER_SIZE + MAX_PAYLOAD_DATA_SIZE
 #define BUFFER_SIZE 128 // Power of 2 to avoid using Modulo
 #define HIGH_PRIORITY 0 // For now everything set to this priority
-#define EXPECTED_PACKET_COUNT 1000
+#define EXPECTED_PACKET_COUNT 1000000
 #define PACKET_DATA_FILE "traffic.bin"
 #define DUMMY_DATA 0xDEADBEEFBABA // 6 bytes
 
@@ -129,7 +129,6 @@ int create_packet_file() {
     packet_payload_t *pp = (packet_payload_t*) malloc(buffer_size);
     if (pp == NULL) {
         fprintf(stderr, "Error: Memory allocation failed for packet data\n");
-        free(pp);
         return -1;
     }
 
@@ -231,7 +230,8 @@ int main() {
         // While there is still data to send
         uint8_t *curr = mapped_data;
         while(curr < eof_addr) {
-            if (ring_is_empty(free_ring)) continue; // busy wait
+            if (ring_is_empty(free_ring) || ring_is_full(ready_ring))
+                    continue; // busy wait
 
             uint32_t free_ring_tail = atomic_load_explicit(&free_ring->tail, memory_order_acquire);
             uint32_t packet_idx = free_ring->buffer[free_ring_tail & free_ring->mask];
@@ -256,7 +256,8 @@ int main() {
         uint32_t packet_count = 0;
         uint64_t checksum = 0;
         while (packet_count < EXPECTED_PACKET_COUNT) {
-            if (ring_is_empty(ready_ring)) continue;
+            if (ring_is_empty(ready_ring) || ring_is_full(free_ring))
+                continue;
 
             uint32_t ready_ring_tail = atomic_load_explicit(&ready_ring->tail, memory_order_acquire);
             uint32_t packet_idx = ready_ring->buffer[ready_ring_tail & ready_ring->mask];
@@ -284,7 +285,6 @@ cleanup:
     if (ready_ring != MAP_FAILED) munmap(ready_ring, ring_size);
     if (free_ring != MAP_FAILED) munmap(free_ring, ring_size);
     close(fd);
-    if (errno != 0) perror("mmap failure");
 
     return 0;
     }
