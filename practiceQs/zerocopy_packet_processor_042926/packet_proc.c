@@ -91,7 +91,7 @@ uint64_t calc_expected_checksum() {
     // add up dummy val byte by byte
     for (int i = 0; i < payload_num_bytes; i++) {
         expected_checksum += (dummy_val & 0xFF);
-        dummy_val >> 8;
+        dummy_val >>= 8;
     }
 
     expected_checksum *= EXPECTED_PACKET_COUNT;
@@ -136,9 +136,8 @@ int create_packet_file() {
     for (int i = 0; i < EXPECTED_PACKET_COUNT; i++) {
         pp[i].len = MAX_PAYLOAD_DATA_SIZE / 8;
         // Copy dummy data byte by byte
-        for (int j = 1; j <= pp[i].len; j++) {
-            pp[i].data[j] = (DUMMY_DATA >> 
-                    (MAX_PAYLOAD_DATA_SIZE - (j * 8)) & 0xFF);
+        for (int j = 0; j <= pp[i].len; j++) {
+            pp[i].data[j] = (DUMMY_DATA >> ((5-j) * 8)) & 0xFF;
         }
     }
 
@@ -278,9 +277,7 @@ int main() {
         }
 
         uint64_t expected_checksum = calc_expected_checksum();
-        if (checksum != expected_checksum) {
-            printf("expected = %lu, actual = %lu\n", expected_checksum, checksum);
-    }
+        printf("expected = %lu, actual = %lu\n", expected_checksum, checksum);
 
 cleanup:
     if (packet_buf != MAP_FAILED) munmap(packet_buf, packet_buf_size);
