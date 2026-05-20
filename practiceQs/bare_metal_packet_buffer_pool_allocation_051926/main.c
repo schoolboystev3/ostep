@@ -22,19 +22,19 @@ uintptr_t head;
 void buffer_pool_init(uint8_t *raw_memory, size_t pool_size, size_t block_size) {
     // Round up to first aligned address
     head = (uintptr_t)raw_memory;
-    head = (head + 7) & ~7;
+    head = (head + 63) & ~63;
 
     // Minimum block size is 64b to at least store address
     if (block_size < 8) {
         block_size = 8;
     }
-    block_size = (block_size + 7) & ~7;
+    block_size = (block_size + 63) & ~63;
 
     uintptr_t curr = head;
     uintptr_t next = head;
-    uintptr_t pool_end = curr + pool_size;
+    uintptr_t pool_end = (uintptr_t)raw_memory + pool_size;
     while (curr < pool_end) {
-        if (curr + block_size < pool_end) {
+        if (curr + block_size <= pool_end) {
             *(uintptr_t*)curr = curr + block_size;
         } else {
             // Last block
@@ -52,16 +52,13 @@ void* buffer_pool_alloc(void) {
     } else {
         void* block = (void*)head;
         head = *(uintptr_t*)head;
+        return block;
     }
 }
 
 // Returns a block back to the pool for reuse.
 void buffer_pool_free(void *ptr) {
-    if (head == INVALID_ADDR) {
-        head = (uintptr_t)ptr;
-    } else {
-        uintptr_t next = head;
-        head = (uintptr_t)ptr;
-        *(uintptr_t*)head = next;
-    }
+    uintptr_t next = head;
+    head = (uintptr_t)ptr;
+    *(uintptr_t*)head = next;
 }
