@@ -1,0 +1,26 @@
+### L03: Partial Initialization Failure Recovery
+
+Problem statement:
+
+Design cleanup for a device init sequence:
+
+1. discover device
+2. map BARs
+3. allocate DMA buffers
+4. register interrupts
+5. initialize memory/resources
+6. expose device to user-space daemon
+
+Requirements:
+
+- Define state transitions.
+- On failure, unwind only initialized resources.
+- Prevent user space from seeing a half-initialized device.
+- Leave diagnostics for why init failed.
+- Handle retry.
+
+Follow-ups:
+
+- What if failure happens after user space has mappings?
+- What if interrupt registration succeeds but memory init fails?
+- What belongs in kernel versus daemon?
